@@ -19,6 +19,7 @@ import validateChatBot from '../lib/startup/validateChatBot'
 import * as security from '../lib/insecurity'
 import * as botUtils from '../lib/botUtils'
 import { challenges } from '../data/datacache'
+import DOMPurify from 'dompurify';
 
 let trainingFile = config.get<string>('application.chatBot.trainingData')
 let testCommand: string
@@ -202,7 +203,9 @@ export const status = function status () {
       bot.addUser(`${user.id}`, username)
       res.status(200).json({
         status: bot.training.state,
-        body: bot.training.state ? bot.greet(`${user.id}`) : `${config.get<string>('application.chatBot.name')} isn't ready at the moment, please wait while I set things up`
+        body: bot.training.state
+  ? bot.greet(DOMPurify.sanitize(user.id))
+  : DOMPurify.sanitize(`${config.get<string>('application.chatBot.name')} isn't ready...`)
       })
     } catch (err) {
       next(new Error('Blocked illegal activity by ' + req.socket.remoteAddress))
