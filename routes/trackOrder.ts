@@ -7,13 +7,16 @@ import * as utils from '../lib/utils'
 import * as challengeUtils from '../lib/challengeUtils'
 import { type Request, type Response } from 'express'
 import * as db from '../data/mongodb'
+import { ObjectId } from 'mongodb';
 import { challenges } from '../data/datacache'
 
 export function trackOrder () {
   return (req: Request, res: Response) => {
     // Truncate id to avoid unintentional RCE
     const id = !utils.isChallengeEnabled(challenges.reflectedXssChallenge) ? String(req.params.id).replace(/[^\w-]+/g, '') : utils.trunc(req.params.id, 60)
-
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).send('Invalid id')
+    }
     challengeUtils.solveIf(challenges.reflectedXssChallenge, () => { return utils.contains(id, '<iframe src="javascript:alert(`xss`)">') })
     db.ordersCollection.find({ $where: `this.orderId === '${id}'` }).then((order: any) => {
       const result = utils.queryResultToJson(order)

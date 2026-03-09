@@ -4,7 +4,8 @@
  */
 
 import { type Request, type Response, type NextFunction } from 'express'
-
+import { Db } from "mongodb";
+import sanitize from "mongo-sanitize";
 import * as challengeUtils from '../lib/challengeUtils'
 import { type ProductModel } from '../models/product'
 import { MemoryModel } from '../models/memory'
@@ -19,7 +20,7 @@ export function dataExport () {
       if (loggedInUser?.data?.email && loggedInUser.data.id) {
         const username = loggedInUser.data.username
         const email = loggedInUser.data.email
-        const updatedEmail = email.replace(/[aeiou]/gi, '*')
+        const safeEmail = sanitize(email)
 
         let memories, orders, reviews
         try {
@@ -30,16 +31,16 @@ export function dataExport () {
         }
 
         try {
-          orders = await db.ordersCollection.find({ email: updatedEmail })
+          orders = await db.ordersCollection.find({ email: safeEmail })
         } catch (error) {
-          next(new Error(`Error retrieving orders for ${updatedEmail}`))
+          next(new Error(`Error retrieving orders for ${safeEmail}`))
           return
         }
 
         try {
-          reviews = await db.reviewsCollection.find({ author: email })
+          reviews = await db.reviewsCollection.find({ author: safeEmail })
         } catch (error) {
-          next(new Error(`Error retrieving reviews for ${updatedEmail}`))
+          next(new Error(`Error retrieving reviews for ${safeEmail}`))
           return
         }
 
