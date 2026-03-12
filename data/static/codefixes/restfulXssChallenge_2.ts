@@ -1,3 +1,4 @@
+import sanitizeHtml from "sanitize-html";
 ngAfterViewInit () {
     const products = this.productService.search('')
     const quantities = this.quantityService.getAll()
@@ -46,7 +47,7 @@ ngAfterViewInit () {
 
   encodeProductDescription (tableData: any[]) {
     for (let i = 0; i < tableData.length; i++) {
-      tableData[i].description = tableData[i].description.replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+      tableData[i].description = sanitizeHtml(tableData[i].description)
     }
   }
 

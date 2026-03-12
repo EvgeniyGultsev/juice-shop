@@ -11,16 +11,38 @@ export function captchas () {
     const captchaId = req.app.locals.captchaId++
     const operators = ['*', '+', '-']
 
-    const firstTerm = Math.floor((Math.random() * 10) + 1)
-    const secondTerm = Math.floor((Math.random() * 10) + 1)
-    const thirdTerm = Math.floor((Math.random() * 10) + 1)
+const firstTerm = Math.floor(Math.random() * 10 + 1)
+const secondTerm = Math.floor(Math.random() * 10 + 1)
+const thirdTerm = Math.floor(Math.random() * 10 + 1)
+const firstOperator = operators[Math.floor(Math.random() * operators.length)]
+const secondOperator = operators[Math.floor(Math.random() * operators.length)]
 
-    const firstOperator = operators[Math.floor((Math.random() * 3))]
-    const secondOperator = operators[Math.floor((Math.random() * 3))]
+const expression = firstTerm.toString() + firstOperator + secondTerm.toString() + secondOperator + thirdTerm.toString()
+    
+function applyOp(a: number, op: string, b: number) {
+  switch(op) {
+    case '+': return a + b
+    case '-': return a - b
+    case '*': return a * b
+    default: throw new Error('Unknown operator')
+  }
+}
 
-    const expression = firstTerm.toString() + firstOperator + secondTerm.toString() + secondOperator + thirdTerm.toString()
-    const answer = eval(expression).toString() // eslint-disable-line no-eval
+let intermediate: number
+let answer: string
+if ((firstOperator === '*' || secondOperator !== '*') && secondOperator !== '*') {
 
+  intermediate = applyOp(firstTerm, firstOperator, secondTerm)
+  answer = applyOp(intermediate, secondOperator, thirdTerm).toString()
+} else {
+  if (firstOperator === '*') {
+    intermediate = applyOp(firstTerm, firstOperator, secondTerm)
+    answer = applyOp(intermediate, secondOperator, thirdTerm).toString()
+  } else {
+    intermediate = applyOp(secondTerm, secondOperator, thirdTerm)
+    answer = applyOp(firstTerm, firstOperator, intermediate).toString()
+  }
+}
     const captcha = {
       captchaId,
       captcha: expression,

@@ -4,6 +4,7 @@
  */
 
 import { type Request, type Response, type NextFunction } from 'express'
+import { ObjectId } from 'mongodb';
 
 import * as challengeUtils from '../lib/challengeUtils'
 import { challenges } from '../data/datacache'
@@ -16,6 +17,10 @@ const sleep = async (ms: number) => await new Promise(resolve => setTimeout(reso
 export function likeProductReviews () {
   return async (req: Request, res: Response, next: NextFunction) => {
     const id = req.body.id
+    if (!ObjectId.isValid(id)) {
+      return res.status(400).send('Invalid id')
+    }
+
     const user = security.authenticatedUsers.from(req)
     if (!user) {
       return res.status(401).json({ error: 'Unauthorized' })
